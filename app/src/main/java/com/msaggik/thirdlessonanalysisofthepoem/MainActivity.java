@@ -5,91 +5,84 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
-import java.util.Arrays;
-
 public class MainActivity extends AppCompatActivity {
 
     // поля
-    // стихотворение для анализа
-    private String poem = "У лукоморья дуб зелёный;\nЗлатая цепь на дубе том:\nИ днём и ночью кот учёный\nВсё ходит по цепи кругом;\n" +
-            "Идёт направо — песнь заводит,\nНалево — сказку говорит.\nТам чудеса: там леший бродит,\nРусалка на ветвях сидит;\n" +
-            "Там на неведомых дорожках\nСледы невиданных зверей;\nИзбушка там на курьих ножках\nСтоит без окон, без дверей;\n" +
-            "Там лес и дол видений полны;\nТам о заре прихлынут волны\nНа брег песчаный и пустой,\nИ тридцать витязей прекрасных\n" +
-            "Чредой из вод выходят ясных,\nИ с ними дядька их морской;\nТам королевич мимоходом\nПленяет грозного царя;\n" +
-            "Там в облаках перед народом\nЧерез леса, через моря\nКолдун несёт богатыря;\nВ темнице там царевна тужит,\n" +
-            "А бурый волк ей верно служит;\nТам ступа с Бабою Ягой\nИдёт, бредёт сама собой,\nТам царь Кащей над златом чахнет;\n" +
-            "Там русский дух… там Русью пахнет!\nИ там я был, и мёд я пил;\nУ моря видел дуб зелёный;\nПод ним сидел, и кот учёный\n" +
-            "Свои мне сказки говорил.";
-    private String[] poemArray; // массив для слов стихотворения
+    private int[] delayMinute = {60, 70, 85}; // задержка прихода сигнала с Марса, Юпитера, Сатурна (в минутах)
 
-    private TextView output; // поле вывода результата на экран смартфона
+    private int[] volumeData = {14, 1250, 883}; // количество информации в час с Марса, Юпитера, Сатурна
+
+    private int coreFrequency = 3; // скорость компьютера в секунду
+
+    private TextView output; // окно вывода на экран смартфона решения задачи
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // привязка поля к разметке
         output = findViewById(R.id.output);
-        poemArray = stringToArray(poem);
-        Arrays.sort(poemArray);
-        output.setText(Arrays.toString(poemArray));
+
+        // вывод данных на экран смартфона
+        output.setText(coreTime(delayMinute, volumeData, coreFrequency) + " секунд");
     }
 
+    // МОДУЛЬ 1
+    // метод конвертирования времени задержки из минут в секунды (задержка в минутах)
+    private int delaySecond(int delayMinute) {
+        return delayMinute * 60;
+    }
 
-    // метод поиска самого длинного слова
-    private String maxWord(String[] wordArray) {
+    // МОДУЛЬ 2
+    // метод определения времени обработки компьютером данных с одной планеты в секундах (скорость компьютера, размер данных)
+    private int volumeTime(int coreFrequency, int volumeData) {
+        return volumeData / coreFrequency;
+    }
 
-        String worldResult = "Самое длинное слово \"";
-        int maxLength = 0; // максимальная длина слова
-        int indexMaxLength = 0; // индекс слова с максимальной длинной
+    // МОДУЛЬ 3 (использующий МОДУЛИ 1-2)
+    // метод вычисления времени обработки компьютером приходящей информации в секундах (массив задержек, массив объёмов данных, скорость компьютера)
+    private int coreTime(int[] delayMinute, int[] volumeData, int frequency) {
 
-        for (int i = 0; i < wordArray.length; i++) {
-            if(wordArray[i].length() > maxLength) { // если длина слова больше предыдущего максимального значения, то
-                maxLength = wordArray[i].length(); // присваиваем новую максимальную длину
-                indexMaxLength = i; // записываем индекс найденного слова
+        int[] delay = new int[delayMinute.length]; // создание пустого массива для задержек времени в секундах
+        for (int i = 0; i < delay.length; i++) { // инициализация данного массива этого массива конвертированными данными (из минут в секунды)
+            delay[i] = delaySecond(delayMinute[i]); // конвертация каждой ячейки массива из минут в секунды
+        }
+
+        int[] volume = new int[volumeData.length]; // создание пустого массива для времени обработки компьютером данных от спутника (в секундах)
+        for (int i = 0; i < volume.length; i++) { // инициализация данного массива
+            volume[i] = volumeTime(frequency, volumeData[i]); // определение времени обработки компьютером данных от одного спутника
+        }
+
+        int count = 0; // счётчик времени работы ядра компьютера
+        int countOperation = 0; // счётчик количества подданных на ядро операций в секунду (например, обработка информации от двух спутников)
+        boolean run = true; // флаг хода времени обработки данных со спутников
+
+        while (run) { // бесконечный цикл работы ядра компьютера до прерывания
+
+            count++; // повышение отсчёта времени на одну секунду
+            run = false; // временное ограничение цикла while одним циклом
+
+            for (int i = 0; i < delay.length; i++) { // с течением времени уменьшение задержки прихода информации со спутников
+                if (delay[i] > 0) { // если от одного спутника сигнал ещё не дошёл, то
+                    delay[i]--; // уменьшаем задержку на 1 секунду
+                    run = true; // снятие ограничения на цикл while (так как в следующем цикле есть что обрабатывать)
+                } else { // иначе обрабатываем данные со спутника
+                    if (volume[i] > 0) { // если есть что обрабатывать, то
+                        volume[i]--; // обрабатываем
+                        countOperation++; // и повышаем счётчик занятости ядра компьютера
+                        if (countOperation > 1) { // если в этот момент ядро уже было занято, то
+                            count++; // прибавляем секунду к времени обработки ядром компьютера
+                            countOperation--; // освобождаем ядро
+                        }
+                        run = true; // снятие ограничения на цикл while (так как в следующем цикле есть что обрабатывать)
+                    } else { // иначе
+                        // данные с данного спутника обработаны
+                    }
+                }
             }
         }
 
-        return worldResult + wordArray[indexMaxLength] + "\" длинной " + maxLength + " букв(а)\n";
-    }
-
-    // метод поиска самого короткого слова
-    private String minWord(String[] wordArray) {
-
-        String worldResult = "Самое короткое слово \"";
-        int minLength = Integer.MAX_VALUE; // минимальная длина слова
-        int indexMinLength = 0; // индекс слова с минимальной длинной
-
-        for (int i = 0; i < wordArray.length; i++) {
-            if(wordArray[i].length() < minLength) { // если длина слова меньше предыдущего минимального значения, то
-                minLength = wordArray[i].length(); // присваиваем новую минимальную длину
-                indexMinLength = i; // записываем индекс найденного слова
-            }
-        }
-
-        return worldResult + wordArray[indexMinLength] + "\" длинной " + minLength + " букв(а)\n";
-    }
-
-    // метод определения количества букв в стихотворении
-    private String numberOfLetters(String[] wordArray) {
-
-        String worldResult = "В стихотворении ";
-        int count = 0; // счётчик количества букв
-
-        for (int i = 0; i < wordArray.length; i++) {
-            count = count + wordArray.length;
-        }
-
-        return worldResult + count + " букв(а)\n";
-    }
-
-    // метод конвертирования строки в массив
-    private String[] stringToArray(String text) {
-
-        String textMod = text.replaceAll("[^А-Яа-я]", " ").trim(); // замена всех символов кроме букв на пробелы и удаление начальных и конечных пробелов
-
-        String[] textArray = textMod.split("\\s+"); // деление строки по всем пробелам (от 1 до большего количества пробелов)
-
-        return textArray;
+        return count; // возврат времени обработки данных от спутников (в секундах)
     }
 }
